@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>内容管理 · INSIDE FFC</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+  <script src="/admin/admin.js" defer></script>
+</head>
+<body class="admin-page">
+  <div class="admin-shell">
+    <header class="admin-topbar">
+      <a class="logo" href="/">INSIDE <span>FFC</span></a>
+      <div class="admin-user" id="admin-user" hidden><span id="username"></span><button class="text-button" id="logout" type="button">退出登录</button></div>
+    </header>
+
+    <main>
+      <section class="login-card" id="login-card">
+        <h1>内容管理</h1>
+        <p>管理员登录后可以发布、编辑、下架或删除作品。</p>
+        <form id="login-form">
+          <div class="field"><label for="login-username">用户名</label><input id="login-username" name="username" autocomplete="username" required></div>
+          <div class="field"><label for="login-password">密码</label><input id="login-password" name="password" type="password" autocomplete="current-password" required></div>
+          <div class="form-error" id="login-error" role="alert"></div>
+          <button class="primary-action" type="submit">登录后台</button>
+        </form>
+      </section>
+
+      <section class="dashboard" id="dashboard" hidden>
+        <div class="dashboard-head"><div><h1>作品管理</h1><p>新建作品，或维护已有的音频与文字内容。</p></div><button class="primary-action" id="new-work" type="button">＋ 新建作品</button></div>
+        <div class="toolbar">
+          <button class="secondary-action filter active" data-filter="all" type="button">全部</button>
+          <button class="secondary-action filter" data-filter="published" type="button">已发布</button>
+          <button class="secondary-action filter" data-filter="draft" type="button">草稿</button>
+          <button class="secondary-action filter" data-filter="archived" type="button">已下架</button>
+        </div>
+        <div id="work-list" aria-live="polite"></div>
+        <div class="note">“下架”会立即从前台隐藏，但保留全部内容和媒体文件；“删除”会永久移除记录及其上传文件。重要数据请配合服务器备份。</div>
+      </section>
+    </main>
+  </div>
+
+  <div class="editor-overlay" id="editor-overlay" hidden>
+    <section class="editor-panel" role="dialog" aria-modal="true" aria-labelledby="editor-title">
+      <button class="round-close" id="editor-close" type="button" aria-label="关闭">×</button>
+      <h2 id="editor-title">新建作品</h2><p class="editor-lead">上传封面、音频和文字内容；保存草稿不会出现在前台。</p>
+      <form id="work-form">
+        <input id="work-id" name="id" type="hidden">
+        <div class="form-grid">
+          <div class="field"><label for="issue-number">期数</label><input id="issue-number" name="issueNumber" placeholder="例如 Vol.02"></div>
+          <div class="field"><label for="published-at">发布日期</label><input id="published-at" name="publishedAt" type="datetime-local"></div>
+          <div class="field full"><label for="title">标题 *</label><input id="title" name="title" maxlength="200" required></div>
+          <div class="field full"><label for="slug">链接别名</label><input id="slug" name="slug" maxlength="100" placeholder="留空会自动生成；建议英文与数字"></div>
+          <div class="field"><label for="host">主播</label><input id="host" name="host" maxlength="100"></div>
+          <div class="field"><label for="guest">嘉宾</label><input id="guest" name="guest" maxlength="100"></div>
+          <div class="field full"><label for="excerpt">摘要</label><textarea id="excerpt" name="excerpt" maxlength="1000" placeholder="用于首页卡片与头图简介"></textarea></div>
+          <div class="field"><label for="cover">封面图片</label><input id="cover" name="cover" type="file" accept="image/jpeg,image/png,image/webp,image/gif"><div class="upload-note" id="cover-note">JPG / PNG / WebP / GIF，建议不超过 10MB</div></div>
+          <div class="field"><label for="audio-file">Podcast 音频</label><input id="audio-file" name="audio" type="file" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/wav,audio/ogg,audio/webm,.mp3,.m4a,.wav,.ogg,.webm"><div class="upload-note" id="audio-note">MP3 / M4A / WAV / OGG / WebM，不超过 80MB</div></div>
+          <div class="field full">
+            <label>文字版内容</label>
+            <div class="editor-toolbar" aria-label="文字格式">
+              <button type="button" data-command="formatBlock" data-value="h2">H2</button><button type="button" data-command="formatBlock" data-value="h3">H3</button>
+              <button type="button" data-command="bold">加粗</button><button type="button" data-command="insertUnorderedList">列表</button><button type="button" data-command="formatBlock" data-value="blockquote">引用</button>
+            </div>
+            <div class="editor" id="content-editor" contenteditable="true" role="textbox" aria-multiline="true"></div>
+          </div>
+        </div>
+        <div class="form-error" id="editor-error" role="alert"></div>
+        <div class="editor-actions">
+          <button class="secondary-action" type="button" data-save="draft">保存草稿</button>
+          <button class="secondary-action" type="button" data-save="archived">保存并下架</button>
+          <button class="primary-action" type="button" data-save="published">发布 / 更新</button>
+        </div>
+      </form>
+    </section>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="INSIDE FFC Podcast & Editorial">
+  <title>INSIDE FFC · Podcast & Editorial</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+  <script src="/assets/app.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <nav class="nav" aria-label="主导航">
+      <a class="logo" href="/">INSIDE <span>FFC</span></a>
+      <div class="nav-links">
+        <a href="/#episodes">Episodes</a>
+        <a href="/#about">About</a>
+        <a class="admin-link" href="/admin">内容管理</a>
+      </div>
+      <a class="mobile-admin" href="/admin">管理</a>
+    </nav>
+
+    <main>
+      <section class="hero" id="hero">
+        <div class="eyebrow">FABRIC &amp; FLOOR CARE · PODCAST &amp; EDITORIAL</div>
+        <h1 id="hero-title">把值得听见的声音，沉淀成值得回看的内容。</h1>
+        <p id="hero-summary">Podcast + 文字版双内容栏目。你可以收听完整节目，也可以直接阅读整理后的图文内容。</p>
+        <div class="hero-actions">
+          <button class="button button-light" id="hero-listen" type="button">▶ 收听最新一期</button>
+          <button class="button button-ghost" id="hero-read" type="button">阅读文字版</button>
+        </div>
+        <div class="hero-issue"><small>CURRENT ISSUE</small><b id="hero-issue">—</b></div>
+      </section>
+
+      <section class="section" id="episodes">
+        <div class="section-head">
+          <div><small>EPISODES</small><h2>最新 &amp; 往期</h2></div>
+          <p id="episode-count">正在读取内容…</p>
+        </div>
+        <div class="episode-grid" id="episode-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="about" id="about">
+        <small>ABOUT INSIDE FFC</small>
+        <h2>声音是现场，文字是沉淀。</h2>
+        <p>INSIDE FFC 记录团队内部值得被听见的方法、经验与人物故事。每一期同时提供播客音频与文字版，方便在不同场景下收听或阅读。</p>
+      </section>
+    </main>
+
+    <footer><span>© 2026 Fabric &amp; Floor Care · Internal Use</span><span>Podcast &amp; Editorial</span></footer>
+  </div>
+
+  <div class="article-overlay" id="article-overlay" hidden>
+    <article class="article-panel" role="dialog" aria-modal="true" aria-labelledby="article-title">
+      <button class="round-close" id="article-close" type="button" aria-label="关闭">×</button>
+      <div class="kicker" id="article-issue">READ · 文字版</div>
+      <h1 id="article-title"></h1>
+      <div class="byline" id="article-meta"></div>
+      <div class="player" id="article-player">
+        <audio id="audio" preload="metadata"></audio>
+        <button class="play-button" id="play-button" type="button" aria-label="播放">▶</button>
+        <div class="progress-block">
+          <input id="seek" type="range" min="0" max="100" step="0.1" value="0" aria-label="播放进度">
+          <div class="time"><span id="current-time">00:00</span><span id="duration">00:00</span></div>
+        </div>
+        <button class="speed-button" id="speed-button" type="button">1×</button>
+      </div>
+      <div class="kicker read-kicker">READ · 文字版</div>
+      <div class="article-content" id="article-content"></div>
+    </article>
+  </div>
+
+  <div class="sticky-player" id="sticky-player" hidden>
+    <button id="sticky-play" type="button" aria-label="播放或暂停">▶</button>
+    <div><b id="sticky-title">正在播放</b><small id="sticky-time">00:00 / 00:00</small></div>
+    <button class="sticky-open" id="sticky-open" type="button">展开</button>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
