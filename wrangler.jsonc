@@ -14,7 +14,7 @@
     {
       "binding": "DB",
       "database_name": "inside-ffc-db",
-      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID",
+      "database_id": "509fa4d8-c23d-40cb-8147-bde671d439ad",
       "migrations_dir": "migrations"
     }
   ],
