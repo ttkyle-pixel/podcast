@@ -38,11 +38,15 @@ const statusLabels = { published: '已发布', draft: '草稿', archived: '已�
 
 function renderList() {
   const list = $('#work-list');
-  const works = state.filter === 'all' ? state.works : state.works.filter((work) => work.status === state.filter);
+  const works = state.filter === 'all'
+    ? state.works
+    : state.filter.startsWith('season-')
+      ? state.works.filter((work) => Number(work.seasonNumber) === Number(state.filter.slice(7)))
+      : state.works.filter((work) => work.status === state.filter);
   if (!works.length) { list.innerHTML = '<div class="empty">这个分类下还没有内容。</div>'; return; }
   list.innerHTML = works.map((work) => `<article class="work-row">
-    <div class="issue-badge">${escapeHtml(work.issueNumber || '—')}</div>
-    <div><h3>${escapeHtml(work.title)}<span class="status ${work.status}">${statusLabels[work.status]}</span></h3><p>更新于 ${escapeHtml(new Date(work.updatedAt).toLocaleString('zh-CN'))}${work.audioUrl ? ' · 已上传音频' : ' · 暂无音频'}</p></div>
+    <div class="issue-badge"><span>S${Number(work.seasonNumber) || 2}</span><small>${escapeHtml(work.issueNumber || '—')}</small></div>
+    <div><h3>${escapeHtml(work.title)}<span class="status ${work.status}">${statusLabels[work.status]}</span></h3><p>第 ${Number(work.seasonNumber) || 2} 季 · ${Number(work.viewCount) || 0} 次浏览 · 更新于 ${escapeHtml(new Date(work.updatedAt).toLocaleString('zh-CN'))}${work.audioUrl ? ' · 已上传音频' : ' · 暂无音频'}</p></div>
     <div class="row-actions">
       <button class="secondary-action" data-edit="${work.id}" type="button">编辑</button>
       ${work.status === 'published' ? `<button class="secondary-action" data-status="archived" data-id="${work.id}" type="button">下架</button>` : `<button class="secondary-action" data-status="published" data-id="${work.id}" type="button">发布</button>`}
@@ -65,6 +69,7 @@ function openEditor(work = null) {
   state.editing = work;
   $('#work-form').reset();
   $('#work-id').value = work?.id || '';
+  $('#season-number').value = String(work?.seasonNumber || 2);
   $('#issue-number').value = work?.issueNumber || '';
   $('#published-at').value = localDatetime(work?.publishedAt);
   $('#title').value = work?.title || '';

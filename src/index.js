@@ -110,6 +110,7 @@ function publicWork(row) {
     id: row.id,
     title: row.title,
     slug: row.slug,
+    seasonNumber: Number(row.season_number || 2),
     issueNumber: row.issue_number,
     host: row.host_name,
     guest: row.guest_name,
@@ -118,6 +119,7 @@ function publicWork(row) {
     coverUrl: row.cover_key ? mediaUrl(row.cover_key) : null,
     audioUrl: row.audio_key ? mediaUrl(row.audio_key) : null,
     audioOriginalName: row.audio_original_name || null,
+    viewCount: Number(row.view_count || 0),
     status: row.status,
     publishedAt: row.published_at,
     createdAt: row.created_at,
@@ -152,6 +154,7 @@ function readPayload(form) {
   return {
     title: title.slice(0, 200),
     slug: slugify(formText(form, 'slug'), `episode-${Date.now()}`),
+    seasonNumber: Math.min(Math.max(Number.parseInt(formText(form, 'seasonNumber'), 10) || 2, 1), 99),
     issueNumber: formText(form, 'issueNumber').trim().slice(0, 40),
     host: formText(form, 'host').trim().slice(0, 100),
     guest: formText(form, 'guest').trim().slice(0, 100),
@@ -235,6 +238,16 @@ async function handlePublic(request, env, url) {
     ]);
     return json({ works: rows.results.map(publicWork), total: count?.count || 0 });
   }
+  const viewRoute = url.pathname.match(/^\/api\/works\/([^/]+)\/view$/);
+  if (viewRoute && request.method === 'POST') {
+    checkOrigin(request);
+    const slug = decodeURIComponent(viewRoute[1]);
+    const now = new Date().toISOString();
+    const result = await env.DB.prepare(`UPDATE works SET view_count = view_count + 1 WHERE slug = ? COLLATE NOCASE AND status = 'published' AND (published_at IS NULL OR published_at <= ?)`).bind(slug, now).run();
+    if (!result.meta.changes) throw new HttpError(404, '没有找到这期内容。');
+    const row = await env.DB.prepare('SELECT view_count FROM works WHERE slug = ? COLLATE NOCASE').bind(slug).first();
+    return json({ viewCount: Number(row?.view_count || 0) });
+  }
   const detail = url.pathname.match(/^\/api\/works\/([^/]+)$/);
   if (detail && request.method === 'GET') {
     const row = await env.DB.prepare(`SELECT * FROM works WHERE slug = ? COLLATE NOCASE AND status = 'published' AND (published_at IS NULL OR published_at <= ?)`).bind(decodeURIComponent(detail[1]), new Date().toISOString()).first();
@@ -267,8 +280,8 @@ async function handleAdmin(request, env, ctx, url) {
     try {
       const coverKey = await uploadFile(env, cover, 'cover'); if (coverKey) uploaded.push(coverKey);
       const audioKey = await uploadFile(env, audio, 'audio'); if (audioKey) uploaded.push(audioKey);
-      const result = await env.DB.prepare(`INSERT INTO works (title, slug, issue_number, host_name, guest_name, excerpt, content_html, cover_key, audio_key, audio_original_name, status, published_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(
-        data.title, data.slug, data.issueNumber, data.host, data.guest, data.excerpt, data.contentHtml,
+      const result = await env.DB.prepare(`INSERT INTO works (title, slug, season_number, issue_number, host_name, guest_name, excerpt, content_html, cover_key, audio_key, audio_original_name, status, published_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(
+        data.title, data.slug, data.seasonNumber, data.issueNumber, data.host, data.guest, data.excerpt, data.contentHtml,
         coverKey, audioKey, audio?.name || null, data.status, data.publishedAt
       ).run();
       const row = await env.DB.prepare('SELECT * FROM works WHERE id = ?').bind(result.meta.last_row_id).first();
@@ -296,8 +309,8 @@ async function handleAdmin(request, env, ctx, url) {
     try {
       const newCover = await uploadFile(env, cover, 'cover'); if (newCover) uploaded.push(newCover);
       const newAudio = await uploadFile(env, audio, 'audio'); if (newAudio) uploaded.push(newAudio);
-      await env.DB.prepare(`UPDATE works SET title = ?, slug = ?, issue_number = ?, host_name = ?, guest_name = ?, excerpt = ?, content_html = ?, cover_key = ?, audio_key = ?, audio_original_name = ?, status = ?, published_at = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).bind(
-        data.title, data.slug, data.issueNumber, data.host, data.guest, data.excerpt, data.contentHtml,
+      await env.DB.prepare(`UPDATE works SET title = ?, slug = ?, season_number = ?, issue_number = ?, host_name = ?, guest_name = ?, excerpt = ?, content_html = ?, cover_key = ?, audio_key = ?, audio_original_name = ?, status = ?, published_at = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).bind(
+        data.title, data.slug, data.seasonNumber, data.issueNumber, data.host, data.guest, data.excerpt, data.contentHtml,
         newCover || existing.cover_key, newAudio || existing.audio_key, audio?.name || existing.audio_original_name,
         data.status, data.publishedAt, item[1]
       ).run();

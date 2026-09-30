@@ -17,6 +17,13 @@ function timeLabel(seconds) {
   return `${String(minutes).padStart(2, '0')}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`;
 }
 
+function seasonLabel(value) {
+  const season = Number(value) || 2;
+  if (season === 1) return '第一季';
+  if (season === 2) return '第二季';
+  return `第 ${season} 季`;
+}
+
 function toast(message) {
   const el = $('#toast');
   el.textContent = message;
@@ -25,19 +32,43 @@ function toast(message) {
   toast.timer = setTimeout(() => { el.hidden = true; }, 2800);
 }
 
-async function api(url) {
-  const response = await fetch(url, { headers: { Accept: 'application/json' } });
+async function api(url, options = {}) {
+  const headers = new Headers(options.headers || {});
+  headers.set('Accept', 'application/json');
+  const response = await fetch(url, { ...options, headers });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || '内容读取失败。');
   return data;
 }
 
+function articleMeta(work) {
+  const people = [work.host && `主播：${work.host}`, work.guest && `嘉宾：${work.guest}`].filter(Boolean).join(' · ');
+  return [dateLabel(work.publishedAt), people, `${Number(work.viewCount) || 0} 次浏览`].filter(Boolean).join(' · ');
+}
+
+function updateViewCount(work, viewCount) {
+  work.viewCount = Number(viewCount) || 0;
+  const listedWork = state.works.find((item) => item.id === work.id);
+  if (listedWork) listedWork.viewCount = work.viewCount;
+  document.querySelectorAll(`[data-view-count-id="${work.id}"]`).forEach((element) => {
+    element.textContent = `${work.viewCount} 次浏览`;
+  });
+  if (state.current?.id === work.id) $('#article-meta').textContent = articleMeta(work);
+}
+
+async function recordView(work) {
+  try {
+    const data = await api(`/api/works/${encodeURIComponent(work.slug)}/view`, { method: 'POST' });
+    updateViewCount(work, data.viewCount);
+  } catch { /* 浏览数统计失败不影响文章正常打开。 */ }
+}
+
 function cardTemplate(work) {
   const cover = work.coverUrl ? `<img class="cover-image" src="${escapeHtml(work.coverUrl)}" alt="" loading="lazy">` : '';
   return `<article class="episode-card">
-    <div class="cover">${cover}<b>ISSUE ${escapeHtml(work.issueNumber || '—')}</b><strong>FFC</strong></div>
+    <div class="cover">${cover}<b>SEASON ${Number(work.seasonNumber) || 2} · ISSUE ${escapeHtml(work.issueNumber || '—')}</b><strong>FFC</strong></div>
     <div class="card-body">
-      <div class="meta">${escapeHtml(dateLabel(work.publishedAt))}${work.host ? ` · 主播 ${escapeHtml(work.host)}` : ''}</div>
+      <div class="meta">${escapeHtml(dateLabel(work.publishedAt))}${work.host ? ` · 主播 ${escapeHtml(work.host)}` : ''} · <span data-view-count-id="${work.id}">${Number(work.viewCount) || 0} 次浏览</span></div>
       <h3>${escapeHtml(work.title)}</h3><p>${escapeHtml(work.excerpt || '点击进入收听 Podcast 并阅读文字版。')}</p>
       <div class="card-actions">
         <button class="listen" type="button" data-listen="${work.id}">▶ 收听</button>
@@ -56,8 +87,15 @@ function renderHome() {
   const latest = state.works[0];
   $('#hero-title').textContent = latest.title;
   $('#hero-summary').textContent = latest.excerpt || '点击进入收听 Podcast 并阅读文字版。';
-  $('#hero-issue').textContent = latest.issueNumber || 'NEW';
-  grid.innerHTML = state.works.map(cardTemplate).join('');
+  $('#hero-issue').textContent = `Season${Number(latest.seasonNumber) || 2} ${latest.issueNumber || 'NEW'}`;
+  const seasons = [...new Set(state.works.map((work) => Number(work.seasonNumber) || 2))].sort((a, b) => b - a);
+  grid.innerHTML = seasons.map((season) => {
+    const works = state.works.filter((work) => (Number(work.seasonNumber) || 2) === season);
+    return `<section class="season-block" aria-labelledby="season-${season}-title">
+      <div class="season-head"><div><small>SEASON ${season}</small><h3 id="season-${season}-title">${seasonLabel(season)}</h3></div><span>${works.length} 期</span></div>
+      <div class="episode-grid">${works.map(cardTemplate).join('')}</div>
+    </section>`;
+  }).join('');
 }
 
 async function openWork(workOrSlug, autoplay = false, push = true) {
@@ -66,10 +104,9 @@ async function openWork(workOrSlug, autoplay = false, push = true) {
     if (!work && typeof workOrSlug === 'string') work = (await api(`/api/works/${encodeURIComponent(workOrSlug)}`)).work;
     if (!work) throw new Error('没有找到这期内容。');
     state.current = work;
-    $('#article-issue').textContent = `${work.issueNumber || 'INSIDE FFC'} · READ`;
+    $('#article-issue').textContent = `${seasonLabel(work.seasonNumber)} · ${work.issueNumber || 'FFC'} · READ`;
     $('#article-title').textContent = work.title;
-    const people = [work.host && `主播：${work.host}`, work.guest && `嘉宾：${work.guest}`].filter(Boolean).join(' · ');
-    $('#article-meta').textContent = [dateLabel(work.publishedAt), people].filter(Boolean).join(' · ');
+    $('#article-meta').textContent = articleMeta(work);
     $('#article-content').innerHTML = work.contentHtml || '<p>暂无文字版内容。</p>';
     audio.pause();
     audio.src = work.audioUrl || '';
@@ -78,6 +115,7 @@ async function openWork(workOrSlug, autoplay = false, push = true) {
     $('#article-overlay').hidden = false;
     document.body.classList.add('no-scroll');
     if (push) history.pushState({ slug: work.slug }, '', `/works/${encodeURIComponent(work.slug)}`);
+    recordView(work);
     if (autoplay && work.audioUrl) await audio.play().catch(() => toast('请点击播放按钮开始收听。'));
   } catch (error) { toast(error.message); }
 }

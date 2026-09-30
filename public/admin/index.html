@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <title>内容管理 · INSIDE FFC</title>
+  <title>内容管理 · 名扬海外 FFC</title>
   <link rel="stylesheet" href="/assets/styles.css">
   <script src="/admin/admin.js" defer></script>
 </head>
@@ -31,6 +31,8 @@
         <div class="dashboard-head"><div><h1>作品管理</h1><p>新建作品，或维护已有的音频与文字内容。</p></div><button class="primary-action" id="new-work" type="button">＋ 新建作品</button></div>
         <div class="toolbar">
           <button class="secondary-action filter active" data-filter="all" type="button">全部</button>
+          <button class="secondary-action filter" data-filter="season-2" type="button">第二季</button>
+          <button class="secondary-action filter" data-filter="season-1" type="button">第一季</button>
           <button class="secondary-action filter" data-filter="published" type="button">已发布</button>
           <button class="secondary-action filter" data-filter="draft" type="button">草稿</button>
           <button class="secondary-action filter" data-filter="archived" type="button">已下架</button>
@@ -48,6 +50,7 @@
       <form id="work-form">
         <input id="work-id" name="id" type="hidden">
         <div class="form-grid">
+          <div class="field"><label for="season-number">栏目季数</label><select id="season-number" name="seasonNumber"><option value="2">第二季</option><option value="1">第一季</option></select></div>
           <div class="field"><label for="issue-number">期数</label><input id="issue-number" name="issueNumber" placeholder="例如 Vol.02"></div>
           <div class="field"><label for="published-at">发布日期</label><input id="published-at" name="publishedAt" type="datetime-local"></div>
           <div class="field full"><label for="title">标题 *</label><input id="title" name="title" maxlength="200" required></div>
