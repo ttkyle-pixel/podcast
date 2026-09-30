@@ -1,0 +1,20 @@
+名扬海外 FFC · 微信分享卡片更新
+================================
+
+一、更新网站
+
+1. 解压“INSIDE_FFC_WeChat_Share_Update.zip”。
+2. 打开 GitHub 仓库 ttkyle-pixel/podcast 的首页。
+3. 点击 Add file，再点击 Upload files。
+4. 把解压后的全部文件和文件夹拖到上传区域。
+5. 点击 Commit changes，等待 Cloudflare 的 Workers Builds 显示成功。
+
+这次更新只增加微信分享图片和网页分享信息，不会修改文章、音频、浏览数、后台密码、域名或数据库。
+
+二、在微信中分享
+
+1. 在手机微信中打开 https://ffcpioneer.cn/ 。
+2. 点击右上角“…”并选择“转发给朋友”。
+3. 如果微信仍显示旧卡片，可先打开 https://ffcpioneer.cn/?v=2 再分享，以避开旧缓存。
+
+直接粘贴网址是否自动生成卡片取决于微信客户端；从微信内打开网页后再转发最稳定。
